@@ -4,59 +4,51 @@ using Microsoft.AspNetCore.Mvc;
 [Route("[controller]")]
 public class ClientesController : ControllerBase
 {
-    private static List<Cliente> Clientes = new List<Cliente>();
+    private readonly AppDbContext _context;
+
+    public ClientesController(AppDbContext context)
+    {
+        _context = context;
+    }
 
     [HttpGet]
     public ActionResult<List<Cliente>> GetAll()
     {
-        return Clientes;
+        return _context.Clientes.ToList();
     }
 
     [HttpGet("{id}")]
     public ActionResult<Cliente> GetById(int id)
     {
-        Cliente clienteEncontrado = null;
-        foreach(var cliente in Clientes)
-        {
-            if(cliente.Id == id)
-            {
-                clienteEncontrado = cliente;
-                break;
-            }
-        }
+        var clienteEncontrado = _context.Clientes.Find(id);
+
         if(clienteEncontrado == null)
-        {
             return NotFound();
-        }
+
         return clienteEncontrado;
     }
 
     [HttpPost]
     public ActionResult Post(Cliente cliente)
     {
-        Clientes.Add(cliente);
+        _context.Clientes.Add(cliente);
+        _context.SaveChanges();
         return Created();
     }
 
     [HttpPut("{id}")]
     public ActionResult Put(int id, Cliente clienteAtualizado)
     {
-        Cliente clienteEncontrado = null;
-        foreach(var cliente in Clientes)
-        {
-            if(cliente.Id == id)
-            {
-                clienteEncontrado = cliente;
-                break;
-            }
-        }
+        var clienteEncontrado = _context.Clientes.Find(id);
+        
         if(clienteEncontrado == null)
-        {
             return NotFound();
-        }
+        
         clienteEncontrado.Nome = clienteAtualizado.Nome;
         clienteEncontrado.Email = clienteAtualizado.Email;
         clienteEncontrado.Telefone = clienteAtualizado.Telefone;
+
+        _context.SaveChanges();
 
         return NoContent();
     }
@@ -64,21 +56,13 @@ public class ClientesController : ControllerBase
     [HttpDelete("{id}")]
     public ActionResult Delete(int id)
     {
-        Cliente clienteEncontrado = null;
-        foreach(var cliente in Clientes)
-        {
-            if(cliente.Id == id)
-            {
-                clienteEncontrado = cliente;
-                break;
-            }
-        }
+        var clienteEncontrado = _context.Clientes.Find(id);
+        
         if(clienteEncontrado == null)
-        {
             return NotFound();
-        }
-        Clientes.Remove(clienteEncontrado);
 
+        _context.Clientes.Remove(clienteEncontrado);
+        _context.SaveChanges();
         return NoContent();
     }
 }
